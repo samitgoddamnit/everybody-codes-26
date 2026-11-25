@@ -1,9 +1,10 @@
 use std::fs;
 use std::path::Path;
+use std::collections::HashMap;
 
 fn main() {
     let file_path = Path::new(
-        concat!(env!("CARGO_MANIFEST_DIR"), "/inputs/everybody_codes_e2026_q02_p1.txt"),
+        concat!(env!("CARGO_MANIFEST_DIR"), "/inputs/everybody_codes_e2026_q02_p3.txt"),
     );
 
     //60 and 62 are the less than and greater than symbols
@@ -13,44 +14,54 @@ fn main() {
             for line in file.lines() {
                 let tmp: String = line.to_string();
                 let split: Vec<&str> = tmp.split(" ").collect();
-                let mut numbers: Vec<(u32, u32)> = Vec::new();
-
-                for i in 1..6 {
-                    let mut pair: (u32, u32) = (i, 0);
-                    numbers.push(pair);
-                }
-
+                let mut graph: HashMap<u32,Vec<u32>> = HashMap::new();
                 for string in split {
                     let bytes = string.as_bytes();
                     if bytes[1] == b'>' {
-                        let target: u8 = bytes[0] - b'1';
-                        numbers[target as usize].1 += 1;
+                        graph.entry((bytes[2] - b'0') as u32).or_default().push((bytes[0] - b'0') as u32);
                     } else {
-                        let target: u8 = bytes[2] - b'1';
-                        numbers[target as usize].1 += 1;
+                        graph.entry((bytes[0] - b'0') as u32).or_default().push((bytes[2] - b'0') as u32);
                     }
                 }
-                numbers.sort_by(|a, b| b.1.cmp(&a.1));
 
-                println!("{:?}", numbers);
-                let mut checksum_str: String = String::new();
-                for pair in numbers {
-                    checksum_str.push_str(&pair.0.to_string());
+                let mut path:Vec<u32> = Vec::new();
+                let mut best:Vec<u32> = Vec::new();
+
+                for i in 1..10 {
+                    dfs(i,&mut path,&mut best,&graph)
                 }
-                println!("{:?}", checksum_str);
-                match checksum_str.parse::<u64>() {
-                    Ok(number) => {
-                        result += number;
-                    }
-                    Err(err) => {
-                        println!("Error parsing int");
-                    }
+                println!("{:?}",best);
+
+                let mut iter = best.iter();
+                let mut counter = 0;
+                let mut value = 0;
+                while let Some(x) = iter.next(){
+                    value += x * (10_u32.pow(counter));
+                    counter += 1;
                 }
+                println!("{:?}",value);
+                result += value as u64;
             }
-            println!("{:?}", result);
+            println!("{:?}",result);
         }
         Err(err) => {
             println!("Error opening file");
         }
     }
+}
+
+fn dfs(current: u32, path: &mut Vec<u32>, best: &mut Vec<u32>, graph: &HashMap<u32,Vec<u32>>){
+    // println!("{:?}",current);
+    path.push(current);
+
+    if path.len() > best.len(){
+        best.clone_from(path);
+    }
+
+    if let Some(options) = graph.get(&current) {
+        for &next in options{
+            dfs(next,path,best,graph);
+        }
+    }
+    path.pop();
 }
