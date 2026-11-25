@@ -4,7 +4,7 @@ use std::path::Path;
 
 
 fn main() {
-    let file_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/inputs/everybody_codes_e2026_q03_p2.txt"));
+    let file_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/inputs/everybody_codes_e2026_q03_p3.txt"));
     match fs::read_to_string(file_path) {
         Ok(file) =>{
             let mut result: u64 = 0;
